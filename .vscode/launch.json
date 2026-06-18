@@ -1,0 +1,24 @@
+{
+  "configurations": [
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:meet-guard}",
+      "name": "Debug MeetGuard",
+      "target": "MeetGuard",
+      "configuration": "debug",
+      "preLaunchTask": "swift: Build Debug MeetGuard"
+    },
+    {
+      "type": "swift",
+      "request": "launch",
+      "args": [],
+      "cwd": "${workspaceFolder:meet-guard}",
+      "name": "Release MeetGuard",
+      "target": "MeetGuard",
+      "configuration": "release",
+      "preLaunchTask": "swift: Build Release MeetGuard"
+    }
+  ]
+}
