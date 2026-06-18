@@ -2,6 +2,8 @@
 
 MeetGuard is a native macOS menu bar app that reads local Calendar events and shows a fullscreen alert before online meetings. It runs locally, uses EventKit, has no third-party dependencies, and does not initiate network communication.
 
+![MeetGuard fullscreen meeting alert](Docs/overlay-preview.webp)
+
 ## Requirements
 
 - macOS 13 or newer
@@ -29,10 +31,48 @@ make run
 
 This builds `.build/app/MeetGuard.app` and opens it. MeetGuard appears only in the menu bar, requests Calendar access on first launch, and does not show a Dock icon.
 
+## Important: Unsigned App Warning
+
+MeetGuard is not notarized yet because notarization requires a paid Apple Developer account. If macOS says the app is damaged after installing it from the DMG, run:
+
+```sh
+xattr -rd com.apple.quarantine /Applications/MeetGuard.app
+```
+
 To build the bundle without opening it:
 
 ```sh
 make app
+```
+
+To build a release DMG:
+
+```sh
+make dmg
+```
+
+The DMG is written to `.build/dist/MeetGuard.dmg`.
+
+## Publish a Release
+
+Authenticate GitHub CLI once:
+
+```sh
+gh auth login
+```
+
+Then publish a release:
+
+```sh
+make release
+```
+
+The command asks for the version number, updates the app bundle version, runs tests, builds the release DMG, commits the version bump, creates a `vX.Y.Z` tag, pushes to GitHub, creates a GitHub Release, and uploads the DMG as a release asset.
+
+You can also pass the version non-interactively:
+
+```sh
+make release VERSION=1.2.0
 ```
 
 ## Development
@@ -43,6 +83,8 @@ Useful commands:
 make build
 make test
 make app
+make dmg
+make release
 make run
 make clean
 ```
