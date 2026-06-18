@@ -1,4 +1,4 @@
-.PHONY: build test app run clean
+.PHONY: build test app dmg release run clean
 
 build:
 	swift build
@@ -8,6 +8,12 @@ test:
 
 app:
 	./Scripts/build-app.sh debug
+
+dmg:
+	./Scripts/build-dmg.sh release
+
+release:
+	./Scripts/release.sh $(VERSION)
 
 run: app
 	open .build/app/MeetGuard.app
