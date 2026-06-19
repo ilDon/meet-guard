@@ -12,17 +12,18 @@ final class SettingsWindowController: NSWindowController {
 
         let hostingView = NSHostingView(rootView: SettingsView(settingsStore: settingsStore, onPreview: onPreview))
         let window = NSWindow(
-            contentRect: NSRect(x: 0, y: 0, width: 560, height: 410),
+            contentRect: NSRect(x: 0, y: 0, width: 590, height: 390),
             styleMask: [.titled, .closable, .miniaturizable],
             backing: .buffered,
             defer: false
         )
 
-        window.title = "MeetGuard Settings"
-        window.titleVisibility = .hidden
-        window.titlebarAppearsTransparent = true
+        window.title = "MeetGuard"
+        window.titleVisibility = .visible
+        window.titlebarAppearsTransparent = false
         window.backgroundColor = .windowBackgroundColor
-        window.minSize = NSSize(width: 520, height: 380)
+        window.minSize = NSSize(width: 590, height: 390)
+        window.maxSize = NSSize(width: 590, height: 390)
         window.contentView = hostingView
         window.isReleasedWhenClosed = false
         window.center()

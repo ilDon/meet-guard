@@ -5,141 +5,146 @@ struct SettingsView: View {
     let onPreview: () -> Void
 
     var body: some View {
-        ZStack {
-            Color(nsColor: .windowBackgroundColor)
-                .ignoresSafeArea()
+        TabView {
+            GeneralSettingsView(settingsStore: settingsStore, onPreview: onPreview)
+                .tabItem {
+                    Label("General", systemImage: "gearshape")
+                }
 
-            VStack(spacing: 12) {
-                header
-                settingsGroup
-                Spacer(minLength: 0)
-            }
-            .padding(.horizontal, 22)
-            .padding(.top, 54)
-            .padding(.bottom, 22)
+            AboutSettingsView()
+                .tabItem {
+                    Label("About", systemImage: "info.circle")
+                }
         }
-        .frame(minWidth: 520, minHeight: 320)
+        .frame(width: 590, height: 390)
     }
+}
 
-    private var header: some View {
-        VStack(spacing: 10) {
-            Image(nsImage: NSImage.meetGuardAppIcon())
-                .resizable()
-                .scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 11, style: .continuous))
-                .frame(width: 48, height: 48)
-                .shadow(color: .black.opacity(0.16), radius: 3, y: 1)
+private struct GeneralSettingsView: View {
+    @ObservedObject var settingsStore: SettingsStore
+    let onPreview: () -> Void
 
-            Text("MeetGuard")
-                .font(.system(size: 24, weight: .bold))
-                .foregroundStyle(.primary)
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.vertical, 22)
-        .background(cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 12, style: .continuous))
-    }
+    var body: some View {
+        Form {
+            Section("General") {
+                SettingsRow(
+                    icon: "clock",
+                    tint: .blue,
+                    title: "Alert timing",
+                    subtitle: "Choose when MeetGuard appears before your meeting."
+                ) {
+                    Picker("Alert timing", selection: $settingsStore.reminderLeadTime) {
+                        ForEach(ReminderLeadTime.allCases) { value in
+                            Text(value.label).tag(value)
+                        }
+                    }
+                    .labelsHidden()
+                    .pickerStyle(.menu)
+                    .frame(width: 128, alignment: .trailing)
+                }
 
-    private var settingsGroup: some View {
-        VStack(spacing: 0) {
-            alertTimingRow
-
-            Divider()
-                .padding(.leading, 46)
-
-            launchAtStartupRow
-
-            Divider()
-                .padding(.leading, 46)
-
-            previewRow
-        }
-        .background(cardBackground)
-        .clipShape(RoundedRectangle(cornerRadius: 10, style: .continuous))
-    }
-
-    private var alertTimingRow: some View {
-        HStack(alignment: .top, spacing: 12) {
-            settingIcon(systemName: "clock", color: .systemBlue)
-
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Alert timing")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.primary)
-
-                Text("Show alert before meeting")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-            }
-
-            Spacer(minLength: 16)
-
-            Picker("", selection: $settingsStore.reminderLeadTime) {
-                ForEach(ReminderLeadTime.allCases) { value in
-                    Text(value.label).tag(value)
+                SettingsRow(
+                    icon: "power",
+                    tint: .green,
+                    title: "Launch at startup",
+                    subtitle: "Start MeetGuard automatically when you log in."
+                ) {
+                    Toggle("", isOn: $settingsStore.launchAtStartup)
+                        .labelsHidden()
+                        .toggleStyle(.switch)
                 }
             }
-            .labelsHidden()
-            .pickerStyle(.radioGroup)
+
+            Section("Preview") {
+                HStack(spacing: 12) {
+                    Text("Preview meeting overlay")
+                        .font(.body)
+
+                    Spacer(minLength: 20)
+
+                    Button("Preview Overlay", action: onPreview)
+                        .frame(width: 132)
+                }
+                .frame(minHeight: 36)
+                .padding(.trailing, 12)
+            }
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 12)
+        .formStyle(.grouped)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
+    }
+}
+
+private struct AboutSettingsView: View {
+    private let repositoryURL = URL(string: "https://github.com/ilDon/meet-guard")!
+
+    var body: some View {
+        Form {
+            Section("About") {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("MeetGuard")
+                        .font(.headline)
+
+                    Text(versionText)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+
+                    Link("GitHub Repository", destination: repositoryURL)
+                        .font(.callout)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(.vertical, 4)
+            }
+        }
+        .formStyle(.grouped)
+        .padding(.horizontal, 18)
+        .padding(.vertical, 14)
     }
 
-    private var launchAtStartupRow: some View {
-        HStack(spacing: 12) {
-            settingIcon(systemName: "power", color: .systemGreen)
+    private var versionText: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String
 
-            Text("Launch at startup")
-                .font(.system(size: 13))
-                .foregroundStyle(.primary)
-
-            Spacer(minLength: 16)
-
-            Toggle("", isOn: $settingsStore.launchAtStartup)
-                .labelsHidden()
-                .toggleStyle(.switch)
+        if let build, !build.isEmpty {
+            return "Version: \(version) (\(build))"
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
+
+        return "Version: \(version)"
     }
+}
 
-    private var previewRow: some View {
-        HStack(spacing: 12) {
-            settingIcon(systemName: "eye", color: .systemPurple)
+private struct SettingsRow<Control: View>: View {
+    let icon: String
+    let tint: Color
+    let title: String
+    let subtitle: String
+    @ViewBuilder let control: () -> Control
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text("Preview")
-                    .font(.system(size: 13))
-                    .foregroundStyle(.primary)
+    var body: some View {
+        HStack(alignment: .center, spacing: 10) {
+            Image(systemName: icon)
+                .font(.system(size: 16, weight: .regular))
+                .symbolRenderingMode(.hierarchical)
+                .foregroundStyle(tint.opacity(0.75))
+                .frame(width: 22, height: 22)
 
-                Text("Show the meeting overlay")
-                    .font(.system(size: 12))
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.body)
+
+                Text(subtitle)
+                    .font(.caption)
                     .foregroundStyle(.secondary)
+                    .lineLimit(2)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer(minLength: 16)
+            Spacer(minLength: 28)
 
-            Button("Preview", action: onPreview)
-                .controlSize(.regular)
+            control()
+                .frame(width: 150, alignment: .trailing)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-    }
-
-    private func settingIcon(systemName: String, color: NSColor) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 5, style: .continuous)
-                .fill(Color(nsColor: color))
-
-            Image(systemName: systemName)
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundStyle(.white)
-        }
-        .frame(width: 22, height: 22)
-    }
-
-    private var cardBackground: some ShapeStyle {
-        Color(nsColor: .controlBackgroundColor)
+        .frame(minHeight: 46)
+        .padding(.trailing, 12)
     }
 }
