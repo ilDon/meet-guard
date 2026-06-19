@@ -10,16 +10,21 @@ struct ReminderDecision: Equatable {
 }
 
 final class ReminderScheduler {
-    private var dismissedMeetingIDs = Set<String>()
     private var activeMeetingIDs = Set<String>()
     private var postponedUntilByMeetingID: [String: Date] = [:]
 
     func nextDecision(
         meetings: [Meeting],
         now: Date,
-        leadTime: ReminderLeadTime
+        leadTime: ReminderLeadTime,
+        dismissedSyncIds: Set<String> = []
     ) -> ReminderDecision {
-        for meeting in meetings where shouldShow(meeting, now: now, leadTime: leadTime) {
+        for meeting in meetings where shouldShow(
+            meeting,
+            now: now,
+            leadTime: leadTime,
+            dismissedSyncIds: dismissedSyncIds
+        ) {
             activeMeetingIDs.insert(meeting.id)
             return ReminderDecision(action: .show(meeting))
         }
@@ -30,7 +35,6 @@ final class ReminderScheduler {
     func markDismissed(_ meeting: Meeting) {
         activeMeetingIDs.remove(meeting.id)
         postponedUntilByMeetingID.removeValue(forKey: meeting.id)
-        dismissedMeetingIDs.insert(meeting.id)
     }
 
     func markJoined(_ meeting: Meeting) {
@@ -52,8 +56,13 @@ final class ReminderScheduler {
         postponedUntilByMeetingID = postponedUntilByMeetingID.filter { _, date in date >= now }
     }
 
-    private func shouldShow(_ meeting: Meeting, now: Date, leadTime: ReminderLeadTime) -> Bool {
-        guard !dismissedMeetingIDs.contains(meeting.id),
+    private func shouldShow(
+        _ meeting: Meeting,
+        now: Date,
+        leadTime: ReminderLeadTime,
+        dismissedSyncIds: Set<String>
+    ) -> Bool {
+        guard !dismissedSyncIds.contains(meeting.id),
               !activeMeetingIDs.contains(meeting.id),
               meeting.endDate > now else {
             return false

@@ -1,3 +1,4 @@
+import CryptoKit
 import EventKit
 import Foundation
 
@@ -90,7 +91,7 @@ final class CalendarService {
         }
 
         return Meeting(
-            id: event.eventIdentifier ?? fallbackID(for: event),
+            id: syncId(for: event),
             title: event.title.isEmpty ? "Untitled Meeting" : event.title,
             startDate: event.startDate,
             endDate: event.endDate,
@@ -118,12 +119,15 @@ final class CalendarService {
         return url.absoluteString
     }
 
-    private func fallbackID(for event: EKEvent) -> String {
-        [
-            event.calendar.calendarIdentifier,
-            event.title,
-            String(event.startDate.timeIntervalSince1970),
-            event.url?.absoluteString ?? ""
-        ].joined(separator: "|")
+    private func syncId(for event: EKEvent) -> String {
+        let externalIdentifier = event.calendarItemExternalIdentifier ?? ""
+        if !externalIdentifier.isEmpty {
+            return externalIdentifier
+        }
+
+        let raw = "\(event.title ?? "")|\(event.startDate.timeIntervalSince1970)|\(event.endDate.timeIntervalSince1970)"
+        return SHA256.hash(data: Data(raw.utf8))
+            .compactMap { String(format: "%02x", $0) }
+            .joined()
     }
 }

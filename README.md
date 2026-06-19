@@ -1,6 +1,6 @@
 # MeetGuard
 
-MeetGuard is a native macOS menu bar app that reads local Calendar events and shows a fullscreen alert before online meetings. It runs locally, uses EventKit, has no third-party dependencies, and does not initiate network communication.
+MeetGuard is a native macOS menu bar app that reads local Calendar events and shows a fullscreen alert before online meetings. It uses EventKit for local calendar access and iCloud storage for syncing preferences and recent alert dismissals across Macs signed into the same Apple ID.
 
 ![MeetGuard fullscreen meeting alert](Docs/overlay-preview.webp)
 
@@ -8,6 +8,7 @@ MeetGuard is a native macOS menu bar app that reads local Calendar events and sh
 
 - macOS 13 or newer
 - Xcode 26 or newer, or the matching Apple Swift toolchain
+- iCloud enabled on each Mac for cross-device settings and dismissal sync
 
 ## Build
 
@@ -95,9 +96,9 @@ The app scans today's events from all calendars visible to Calendar.app. It insp
 
 - `CalendarService`: EventKit permission, event fetching, conversion into meetings.
 - `MeetingDetector`: regex-based meeting URL extraction.
-- `ReminderScheduler`: lead-time checks, duplicate protection, dismiss and postpone state.
+- `ReminderScheduler`: lead-time checks, duplicate protection, and postpone state.
 - `OverlayManager`: fullscreen overlay windows on all connected displays.
-- `SettingsStore`: persisted settings in `UserDefaults`.
+- `SettingsStore`: iCloud KVS-backed preferences and recent dismissed-alert sync.
 
 ## Settings
 
@@ -112,4 +113,4 @@ The `Preview` button shows the fullscreen overlay using the first conference-lin
 
 ## Privacy
 
-MeetGuard requests Calendar access only. It does not use analytics, telemetry, cloud sync, or third-party frameworks.
+MeetGuard requests Calendar access and uses `NSUbiquitousKeyValueStore` for preferences and recent alert dismissals. It does not use analytics, telemetry, CloudKit, custom backends, API keys, or third-party frameworks.

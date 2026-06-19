@@ -11,6 +11,7 @@ final class AppController {
     private let launchAtStartupService: LaunchAtStartupService
 
     private var timer: Timer?
+    private var visibleMeeting: Meeting?
     private var cancellables = Set<AnyCancellable>()
 
     init(
@@ -47,6 +48,13 @@ final class AppController {
             .sink { [weak self] _ in
                 self?.installTimer()
                 self?.scan()
+            }
+            .store(in: &cancellables)
+
+        settingsStore.$dismissedEvents
+            .dropFirst()
+            .sink { [weak self] _ in
+                self?.dismissVisibleAlertIfNeeded()
             }
             .store(in: &cancellables)
 
@@ -93,12 +101,15 @@ final class AppController {
             meeting: meeting,
             onJoin: { [weak self] _ in
                 NSWorkspace.shared.open(meeting.url)
+                self?.visibleMeeting = nil
                 self?.overlayManager.dismiss()
             },
             onPostpone: { [weak self] _ in
+                self?.visibleMeeting = nil
                 self?.overlayManager.dismiss()
             },
             onDismiss: { [weak self] _ in
+                self?.visibleMeeting = nil
                 self?.overlayManager.dismiss()
             }
         )
@@ -124,28 +135,47 @@ final class AppController {
         let decision = scheduler.nextDecision(
             meetings: meetings,
             now: now,
-            leadTime: settingsStore.reminderLeadTime
+            leadTime: settingsStore.reminderLeadTime,
+            dismissedSyncIds: Set(settingsStore.dismissedEvents.map(\.syncId))
         )
 
         if case let .show(meeting) = decision.action {
+            visibleMeeting = meeting
             overlayManager.show(
                 meeting: meeting,
                 onJoin: { [weak self] meeting in
+                    guard let self else { return }
                     NSWorkspace.shared.open(meeting.url)
-                    self?.scheduler.markJoined(meeting)
-                    self?.overlayManager.dismiss()
+                    settingsStore.markDismissed(meeting)
+                    scheduler.markJoined(meeting)
+                    visibleMeeting = nil
+                    overlayManager.dismiss()
                 },
                 onPostpone: { [weak self] meeting in
                     guard let self else { return }
                     _ = scheduler.postpone(meeting, now: Date(), factor: settingsStore.postponeFactor)
+                    visibleMeeting = nil
                     overlayManager.dismiss()
                 },
                 onDismiss: { [weak self] meeting in
-                    self?.scheduler.markDismissed(meeting)
-                    self?.overlayManager.dismiss()
+                    guard let self else { return }
+                    settingsStore.markDismissed(meeting)
+                    scheduler.markDismissed(meeting)
+                    visibleMeeting = nil
+                    overlayManager.dismiss()
                 }
             )
         }
+    }
+
+    private func dismissVisibleAlertIfNeeded() {
+        guard let meeting = visibleMeeting, settingsStore.isDismissed(meeting) else {
+            return
+        }
+
+        scheduler.markDismissed(meeting)
+        visibleMeeting = nil
+        overlayManager.dismiss()
     }
 
     private func showPermissionDenied() {

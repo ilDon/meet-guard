@@ -56,9 +56,12 @@ struct ReminderSchedulerTests {
         let now = Date(timeIntervalSince1970: 1_000)
         let meeting = makeMeeting(start: now.addingTimeInterval(5 * 60))
 
-        scheduler.markDismissed(meeting)
-
-        let decision = scheduler.nextDecision(meetings: [meeting], now: now, leadTime: .five)
+        let decision = scheduler.nextDecision(
+            meetings: [meeting],
+            now: now,
+            leadTime: .five,
+            dismissedSyncIds: [meeting.id]
+        )
         #expect(decision.action == .none)
     }
 

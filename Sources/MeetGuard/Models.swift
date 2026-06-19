@@ -10,6 +10,11 @@ struct Meeting: Identifiable, Equatable, Sendable {
     var organizer: String? = nil
 }
 
+struct DismissedEvent: Codable, Equatable, Sendable {
+    let syncId: String
+    let timestamp: TimeInterval
+}
+
 enum CalendarAccessState: Equatable, Sendable {
     case unknown
     case authorized
