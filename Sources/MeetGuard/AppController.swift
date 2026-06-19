@@ -49,6 +49,15 @@ final class AppController {
                 self?.scan()
             }
             .store(in: &cancellables)
+
+        NSWorkspace.shared.notificationCenter
+            .publisher(for: NSWorkspace.didWakeNotification)
+            .sink { [weak self] _ in
+                Task { @MainActor in
+                    self?.scan()
+                }
+            }
+            .store(in: &cancellables)
     }
 
     func start() {

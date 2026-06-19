@@ -55,7 +55,7 @@ final class ReminderScheduler {
     private func shouldShow(_ meeting: Meeting, now: Date, leadTime: ReminderLeadTime) -> Bool {
         guard !dismissedMeetingIDs.contains(meeting.id),
               !activeMeetingIDs.contains(meeting.id),
-              meeting.startDate >= now else {
+              meeting.endDate > now else {
             return false
         }
 

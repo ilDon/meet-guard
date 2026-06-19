@@ -24,6 +24,32 @@ struct ReminderSchedulerTests {
         #expect(decision.action == .none)
     }
 
+    @Test("shows meeting already in progress")
+    func showsInProgressMeeting() {
+        let scheduler = ReminderScheduler()
+        let now = Date(timeIntervalSince1970: 1_000)
+        let meeting = makeMeeting(
+            start: now.addingTimeInterval(-60),
+            end: now.addingTimeInterval(29 * 60)
+        )
+
+        let decision = scheduler.nextDecision(meetings: [meeting], now: now, leadTime: .five)
+        #expect(decision.action == .show(meeting))
+    }
+
+    @Test("does not show meeting that already ended")
+    func doesNotShowEndedMeeting() {
+        let scheduler = ReminderScheduler()
+        let now = Date(timeIntervalSince1970: 1_000)
+        let meeting = makeMeeting(
+            start: now.addingTimeInterval(-30 * 60),
+            end: now.addingTimeInterval(-60)
+        )
+
+        let decision = scheduler.nextDecision(meetings: [meeting], now: now, leadTime: .five)
+        #expect(decision.action == .none)
+    }
+
     @Test("dismiss prevents later alerts")
     func dismissPreventsLaterAlerts() {
         let scheduler = ReminderScheduler()
@@ -49,12 +75,12 @@ struct ReminderSchedulerTests {
         #expect(scheduler.nextDecision(meetings: [meeting], now: now.addingTimeInterval(4 * 60), leadTime: .five).action == .show(meeting))
     }
 
-    private func makeMeeting(start: Date) -> Meeting {
+    private func makeMeeting(start: Date, end: Date? = nil) -> Meeting {
         Meeting(
             id: "event-1",
             title: "Weekly Product Review",
             startDate: start,
-            endDate: start.addingTimeInterval(30 * 60),
+            endDate: end ?? start.addingTimeInterval(30 * 60),
             calendarTitle: "Work",
             url: URL(string: "https://meet.google.com/abc-defg-hij")!
         )
