@@ -100,7 +100,7 @@ final class AppController {
         overlayManager.show(
             meeting: meeting,
             onJoin: { [weak self] _ in
-                NSWorkspace.shared.open(meeting.url)
+                NSWorkspace.shared.open(meeting.joinURL)
                 self?.visibleMeeting = nil
                 self?.overlayManager.dismiss()
             },
@@ -145,7 +145,7 @@ final class AppController {
                 meeting: meeting,
                 onJoin: { [weak self] meeting in
                     guard let self else { return }
-                    NSWorkspace.shared.open(meeting.url)
+                    NSWorkspace.shared.open(meeting.joinURL)
                     settingsStore.markDismissed(meeting)
                     scheduler.markJoined(meeting)
                     visibleMeeting = nil

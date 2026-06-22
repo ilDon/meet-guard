@@ -7,7 +7,12 @@ struct Meeting: Identifiable, Equatable, Sendable {
     let endDate: Date
     let calendarTitle: String
     let url: URL
+    var calendarAccountEmail: String? = nil
     var organizer: String? = nil
+
+    var joinURL: URL {
+        MeetingURLAuthenticator.authenticatedURL(url, calendarAccountEmail: calendarAccountEmail)
+    }
 }
 
 struct DismissedEvent: Codable, Equatable, Sendable {

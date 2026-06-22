@@ -97,8 +97,34 @@ final class CalendarService {
             endDate: event.endDate,
             calendarTitle: event.calendar.title,
             url: url,
+            calendarAccountEmail: calendarAccountEmail(for: event),
             organizer: organizerDisplayName(for: event)
         )
+    }
+
+    private func calendarAccountEmail(for event: EKEvent) -> String? {
+        [
+            event.calendar.source.title,
+            event.calendar.source.sourceIdentifier,
+            event.calendar.title
+        ]
+        .compactMap(emailAddress(in:))
+        .first
+    }
+
+    private func emailAddress(in value: String?) -> String? {
+        guard let value else {
+            return nil
+        }
+
+        let pattern = #"[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}"#
+        guard let expression = try? NSRegularExpression(pattern: pattern, options: [.caseInsensitive]),
+              let match = expression.firstMatch(in: value, range: NSRange(value.startIndex..<value.endIndex, in: value)),
+              let range = Range(match.range, in: value) else {
+            return nil
+        }
+
+        return String(value[range])
     }
 
     private func organizerDisplayName(for event: EKEvent) -> String? {
