@@ -11,6 +11,7 @@ final class AppController {
     private let launchAtStartupService: LaunchAtStartupService
 
     private var timer: Timer?
+    private var reminderActivity: NSObjectProtocol?
     private var visibleMeeting: Meeting?
     private var cancellables = Set<AnyCancellable>()
 
@@ -70,6 +71,7 @@ final class AppController {
 
     func start() {
         launchAtStartupService.setEnabled(settingsStore.launchAtStartup)
+        beginReminderActivity()
 
         Task {
             let access = await calendarService.requestAccess()
@@ -85,6 +87,17 @@ final class AppController {
 
     func rescheduleTimer() {
         installTimer()
+    }
+
+    private func beginReminderActivity() {
+        guard reminderActivity == nil else {
+            return
+        }
+
+        reminderActivity = ProcessInfo.processInfo.beginActivity(
+            options: [.userInitiatedAllowingIdleSystemSleep],
+            reason: "MeetGuard needs timely calendar scans for meeting reminders."
+        )
     }
 
     func showOverlayPreview() {
