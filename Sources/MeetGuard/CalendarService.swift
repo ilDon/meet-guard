@@ -2,6 +2,40 @@ import CryptoKit
 import EventKit
 import Foundation
 
+enum MeetingSyncID {
+    static func make(
+        externalIdentifier: String?,
+        title: String?,
+        startDate: Date,
+        endDate: Date
+    ) -> String {
+        // Recurring events share EventKit's external id, so the time window is part of the dismiss key.
+        let eventIdentifier: String
+        if let externalIdentifier = externalIdentifier?.trimmingCharacters(in: .whitespacesAndNewlines),
+           !externalIdentifier.isEmpty {
+            eventIdentifier = "external:\(externalIdentifier)"
+        } else {
+            eventIdentifier = "fallback:\(title ?? "")"
+        }
+
+        let raw = [
+            eventIdentifier,
+            "start:\(timestamp(startDate))",
+            "end:\(timestamp(endDate))"
+        ].joined(separator: "|")
+
+        let digest = SHA256.hash(data: Data(raw.utf8))
+            .compactMap { String(format: "%02x", $0) }
+            .joined()
+
+        return "v2:\(digest)"
+    }
+
+    private static func timestamp(_ date: Date) -> Int {
+        Int(date.timeIntervalSince1970.rounded())
+    }
+}
+
 @MainActor
 final class CalendarService {
     private let eventStore: EKEventStore
@@ -146,14 +180,11 @@ final class CalendarService {
     }
 
     private func syncId(for event: EKEvent) -> String {
-        let externalIdentifier = event.calendarItemExternalIdentifier ?? ""
-        if !externalIdentifier.isEmpty {
-            return externalIdentifier
-        }
-
-        let raw = "\(event.title ?? "")|\(event.startDate.timeIntervalSince1970)|\(event.endDate.timeIntervalSince1970)"
-        return SHA256.hash(data: Data(raw.utf8))
-            .compactMap { String(format: "%02x", $0) }
-            .joined()
+        MeetingSyncID.make(
+            externalIdentifier: event.calendarItemExternalIdentifier,
+            title: event.title,
+            startDate: event.startDate,
+            endDate: event.endDate
+        )
     }
 }
