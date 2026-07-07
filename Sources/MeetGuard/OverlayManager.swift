@@ -69,13 +69,19 @@ final class OverlayManager {
             window.isReleasedWhenClosed = false
             window.ignoresMouseEvents = false
             window.onDefaultAction = onDefaultAction
-            window.contentView = NSHostingView(rootView: content.frame(maxWidth: .infinity, maxHeight: .infinity))
+            window.contentView = OverlayHostingView(rootView: content.frame(maxWidth: .infinity, maxHeight: .infinity))
             window.makeKeyAndOrderFront(nil)
 
             return window
         }
 
         NSApp.activate(ignoringOtherApps: true)
+    }
+}
+
+private final class OverlayHostingView<Content: View>: NSHostingView<Content> {
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool {
+        true
     }
 }
 

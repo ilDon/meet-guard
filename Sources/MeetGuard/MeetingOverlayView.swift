@@ -298,15 +298,19 @@ private struct PrimaryOverlayAction: View {
     let title: String
     let action: () -> Void
     @State private var isHovered = false
+    @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack {
-            Spacer(minLength: 0)
-            Text(title)
-                .font(.system(size: 39, weight: .heavy))
-            Spacer(minLength: 0)
+        Button(action: action) {
+            HStack {
+                Spacer(minLength: 0)
+                Text(title)
+                    .font(.system(size: 39, weight: .heavy))
+                Spacer(minLength: 0)
+            }
+            .frame(height: 98)
         }
-        .frame(height: 98)
+            .buttonStyle(.plain)
             .foregroundStyle(.white)
             .background(
                 RoundedRectangle(cornerRadius: 44, style: .continuous)
@@ -325,10 +329,23 @@ private struct PrimaryOverlayAction: View {
                     )
                     .shadow(color: Color(red: 0.05, green: 0.33, blue: 1).opacity(0.45), radius: 22, y: 10)
             )
+            .overlay(
+                RoundedRectangle(cornerRadius: 44, style: .continuous)
+                    .strokeBorder(Color.white.opacity(isFocused ? 0.78 : 0), lineWidth: 3)
+                    .shadow(color: Color.white.opacity(isFocused ? 0.44 : 0), radius: 6)
+            )
             .contentShape(RoundedRectangle(cornerRadius: 44, style: .continuous))
+            .focused($isFocused)
             .onHover { isHovered = $0 }
-            .onTapGesture(perform: action)
+            .onAppear(perform: focusJoinButton)
             .animation(.easeOut(duration: 0.12), value: isHovered)
+            .animation(.easeOut(duration: 0.12), value: isFocused)
+    }
+
+    private func focusJoinButton() {
+        DispatchQueue.main.async {
+            isFocused = true
+        }
     }
 }
 
@@ -338,24 +355,28 @@ private struct SecondaryOverlayAction: View {
     let subtitle: String
     let action: () -> Void
     @State private var isHovered = false
+    @FocusState private var isFocused: Bool
 
     var body: some View {
-        HStack(spacing: 20) {
-            Image(systemName: icon)
-                .font(.system(size: 32, weight: .regular))
-                .frame(width: 38)
+        Button(action: action) {
+            HStack(spacing: 20) {
+                Image(systemName: icon)
+                    .font(.system(size: 32, weight: .regular))
+                    .frame(width: 38)
 
-            VStack(alignment: .leading, spacing: 5) {
-                Text(title)
-                    .font(.system(size: 20, weight: .bold))
-                Text(subtitle)
-                    .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Color.white.opacity(0.58))
+                VStack(alignment: .leading, spacing: 5) {
+                    Text(title)
+                        .font(.system(size: 20, weight: .bold))
+                    Text(subtitle)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color.white.opacity(0.58))
+                }
+
+                Spacer()
             }
-
-            Spacer()
+            .padding(.horizontal, 44)
         }
-        .padding(.horizontal, 44)
+            .buttonStyle(.plain)
             .foregroundStyle(.white)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(
@@ -375,12 +396,13 @@ private struct SecondaryOverlayAction: View {
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 28, style: .continuous)
-                            .stroke(Color.white.opacity(0.22), lineWidth: 1)
+                            .stroke(Color.white.opacity(isFocused ? 0.58 : 0.22), lineWidth: isFocused ? 2 : 1)
                     )
             )
             .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
+            .focused($isFocused)
             .onHover { isHovered = $0 }
-            .onTapGesture(perform: action)
             .animation(.easeOut(duration: 0.12), value: isHovered)
+            .animation(.easeOut(duration: 0.12), value: isFocused)
     }
 }
