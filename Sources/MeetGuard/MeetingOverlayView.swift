@@ -308,7 +308,8 @@ private struct PrimaryOverlayAction: View {
                     .font(.system(size: 39, weight: .heavy))
                 Spacer(minLength: 0)
             }
-            .frame(height: 98)
+            .frame(maxWidth: .infinity, minHeight: 98, maxHeight: 98)
+            .contentShape(RoundedRectangle(cornerRadius: 44, style: .continuous))
         }
             .buttonStyle(.plain)
             .foregroundStyle(.white)
@@ -334,7 +335,6 @@ private struct PrimaryOverlayAction: View {
                     .strokeBorder(Color.white.opacity(isFocused ? 0.78 : 0), lineWidth: 3)
                     .shadow(color: Color.white.opacity(isFocused ? 0.44 : 0), radius: 6)
             )
-            .contentShape(RoundedRectangle(cornerRadius: 44, style: .continuous))
             .focused($isFocused)
             .onHover { isHovered = $0 }
             .onAppear(perform: focusJoinButton)
@@ -375,6 +375,8 @@ private struct SecondaryOverlayAction: View {
                 Spacer()
             }
             .padding(.horizontal, 44)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
         }
             .buttonStyle(.plain)
             .foregroundStyle(.white)
@@ -399,7 +401,6 @@ private struct SecondaryOverlayAction: View {
                             .stroke(Color.white.opacity(isFocused ? 0.58 : 0.22), lineWidth: isFocused ? 2 : 1)
                     )
             )
-            .contentShape(RoundedRectangle(cornerRadius: 28, style: .continuous))
             .focused($isFocused)
             .onHover { isHovered = $0 }
             .animation(.easeOut(duration: 0.12), value: isHovered)
