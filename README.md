@@ -4,6 +4,10 @@ MeetGuard is a native macOS menu bar app that reads local Calendar events and sh
 
 ![MeetGuard fullscreen meeting alert](Docs/overlay-preview.webp)
 
+## Built with Codex
+
+This entire project was created by OpenAI Codex—initially Codex 5.5 and later Codex 5.6—including all code, documentation, designs, and mockups. Not a single line in this project was written by a human. Without Codex, this project would never have been possible.
+
 ## Requirements
 
 - macOS 13 or newer
